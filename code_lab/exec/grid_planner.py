@@ -13,11 +13,6 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import TextBox
 from matplotlib.widgets import Button
 import cartopy.crs as ccrs
-# RomsPy
-ROMSPY_PATH = f"{os.environ['ROMSPY_ROOT']}/src"
-sys.path.append(ROMSPY_PATH)
-import nc_read_write as nc
-import plot_utils as pu
 # ROMS-Tools ([C]Worthy)
 ROMSTOOLS_PATH=f"{os.environ['ROMSTOOLS_ROOT']}"
 import roms_tools as rt
@@ -44,4 +39,4 @@ lat = 31.5
 rot = 32
 
 # Run src code:
-exec(open(ROMSTOOLS_PATH + '/code_lab/src/grid_planner_src.py')).read()
+exec(open(ROMSTOOLS_PATH + '/code_lab/src/grid_planner_src.py').read())

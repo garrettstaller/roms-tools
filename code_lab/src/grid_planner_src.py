@@ -32,32 +32,6 @@ def add_grid(event,parent_grid,res):
     print(f'Plotting Initial Grid at {lon},{lat}')
   else:  # this return lets other clicks outside of toolbox or main figure be ignored...
     return
-#    # ensure a plot is already present before moving
-#    if (lat and current_params['ix'] is None) or (lon and current_params['iy'] is None): 
-#      print('Place grid on plot before adjust lat and lon please...')
-#      return
-#    # based on user input adjust plot
-#    elif (lon is not None):
-#      ix = float(lon)
-#      if ix==current_params['ix']: return  # do not repeat if input is the same...
-#      current_params['ix'] = ix
-#      iy = current_params['iy']
-#      rot = current_params['rot']
-#      print(f'\n Translating to {ix:.4f} deg.')
-#    elif (lat is not None):
-#      iy = float(lat)
-#      if iy==current_params['iy']: return
-#      current_params['iy'] = iy
-#      ix = current_params['ix']
-#      rot = current_params['rot']
-#      print(f'\n Translating to {iy:.4f} deg.')
-#    else:
-#      rot = float(rot)
-#      if rot==current_params['rot']: return
-#      current_params['rot'] = rot
-#      ix = current_params['ix']
-#      iy = current_params['iy']
-#      print(f'\n Rotating by: {rot:.2f} deg.')
 
   # Ensure a position has been set
   if (current_params['ix'] is None) or (current_params['iy'] is None):
@@ -70,7 +44,6 @@ def add_grid(event,parent_grid,res):
   current_boundary['artists'] = []
 
   dx_grid,dy_grid = res,res
-  #grid_size_x,grid_size_y = int(parent_grid.nx*dx_grid),int(parent_grid.ny*dy_grid)
 
   grid_params = {
                  "nx":parent_grid.nx if current_params['nx'] is None else current_params['nx'],
@@ -119,63 +92,28 @@ def on_click(event):
   # updates current_grid dictionary each click
   if event.button==1:
     add_grid(event,parent_grid,res)
+  # Exit click, update the result dictionary with a finished grid
   elif event.button==3:
     result['grid'] = current_grid.get('grid')
+    # prevent finished grit if user has not placed one...
     if result['grid'] is None: print('You must actually plot a grid to nest... try again')
     else: plt.close()
    
-# input rotation to change orientation of grid interactively
-#def submit_rot(expression):
-#  try:
-#    test=float(expression)  # silently checks if value can be converted to float from string
-#    add_grid(expression,parent_grid,res,rot=expression)
-#  except:
-#    print('Please input a float-like value not a string')
-#    return
-## input lat and lons to translate plot
-#def submit_lon(expression):
-#  try:
-#    test=float(expression)  # silently checks if value can be converted to float from string
-#    add_grid(expression,parent_grid,res,lon=expression)
-#  except:
-#    print('Please input a float-like value not a string')
-#    return
-#def submit_lat(expression):
-#  try:
-#    test=float(expression)  # silently checks if value can be converted to float from string
-#    add_grid(expression,parent_grid,res,lat=expression)
-#  except:
-#    print('Please input a float-like value not a string')
-#    return
-
 def submit_text(expression,param):
   # Silently check for float-convertible input
   try:
     if float(expression)==current_params[param]: return  # ignore repeated values
+    # simply update dictionary
     current_params[param] = float(expression)
     print(f'Updated {param}: {current_params[param]}')
   except:
     print('Please input a float-like value not a string')
     return
-  # confirm that this is not a repeat
-  #if float(expression)==current_params[param]: return
-  # map to global dictionary if a new value has been input
-  # re-run grid plotting with updated params
-  #add_grid(expression,parent_grid,res)
 
+# 'apply' updates made with submit text function to plotted grid
 def on_apply(event):
   add_grid('apply',parent_grid,res)
 
-#def on_key(event):
-#  print(event.key)
-#  # upon entering saves grid and closes figure...
-#  if event.key in ['q']:
-#    result['grid'] = current_grid.get('grid')
-#    # Only exit if child grid has been plotted
-#    if result['grid'] is not None:
-#      plt.close()
-#    else:
-#      print('Please place a child grid before exiting...')
 
 #                            !]
 
@@ -184,17 +122,17 @@ def on_apply(event):
 # Parent Grid                ![
 ngrids = 0
 
+# Read parent grd
 if (start_grid_file is not None) or (ngrids!=0):
   # grab existing grid and add it to class
   grid_path = f"{path}/{start_grid_file}" if ngrids==0 else f"{path}/{new_grid_file}"
   print(f'Starting with parent grid in {grid_path}')
-  grd_ds = nc.load(grid_path)
   parent_grid = Grid(filename=grid_path)
   parent_ready = True
+# Build parent grd
 else:
   print('No starting grid provided, bulding parent...')
-  # Build parent grd
-  # Get dimensions
+  # Get dimensions and resoltion
   user_input = input("Desired dimensions in XI and ETA and resolution: < nx ny dx/dy>: " )
   user_input = np.fromstring(user_input,dtype=float,sep=' ')
   nx_grid,ny_grid,res = int(user_input[0]),int(user_input[1]),user_input[2]
@@ -214,7 +152,7 @@ else:
                  "hmin":min_depth
                 }
   parent_grid = Grid(**grid_params)
-  parent_ready = False
+  parent_ready = False  # used in nesting loop to allow for adjustments to base parent grid before nesting
 
 #                            !]
 
@@ -242,7 +180,7 @@ while True:  # Infinite loop dependent on 'progress_input' at end
   fig = plt.gcf()  # figure
   n_lines_original = len(ax.lines)
 
-  # if positions have been declared
+  # if positions have been declared in /exec configuration script make an initial plot
   if (ngrids==0) and ((lon is not None) and (lat is not None)):
     add_grid('bypass',parent_grid,res)
   
