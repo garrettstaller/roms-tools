@@ -1,0 +1,4 @@
+# Ignore updates to scripts in exec/
+exec/*
+# Except for templates
+!exec/templates/

@@ -34,9 +34,9 @@ min_depth       = 2   # units: meters
 vertical_levels = 60  # number of sigma-rho levels
 
 # Presets to trigger generation
-lon = -123.7
-lat = 31.5
-rot = 32
+lon = None
+lat = None
+rot = None
 
 # Run src code:
 exec(open(ROMSTOOLS_PATH + '/code_lab/src/grid_planner_src.py').read())
