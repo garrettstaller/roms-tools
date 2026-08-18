@@ -1,0 +1,69 @@
+'''
+set_river_frc.py - Garrett Staller | August 18th, 2026
+
+Given the location and names of a parent/nested grid and a processed GloFAS dataset; create a readable forcing file
+for ROMS that provides location of rivers and respective flow rates. If the data has not been processed, run
+process_river_data.py provided a raw NetCDF using the EWDS API (pull_river_data.py).
+
+User's may select at what times to select processed data from - in the case processed NetCDF is over multiple model hindcast times. There may also be missing data, especially when working with daily average discharge sets. The "climatology_handling" option allows users to either ignore misisng values ('never'), default to monthly climatology if missing ('is_any_missing'), or instead use
+the monthly climatology ('always').
+
+Finally, naming is derived from grd files name if one is not provided. Multi-grid functionality to come!
+'''
+
+# --- Grid Location --- #
+GRID_DIR  = "/home/projects-gstaller/sbc-nesting/grids/"  # Home of parent/child grid(s)
+GRID_NAME = "uswc1200_final.nc"
+
+# --- River Data    --- #
+GLOFAS_DIR  = "/home/projects-gstaller/sbc-nesting/DATASETS/glofas/"  # Home of GloFAS datasets
+GLOFAS_PROC = "glofas_v4_rivers.nc"  # Processed NetCDF not raw API pull...
+
+# --- Params        --- #
+START_YEAR = 2020
+END_YEAR   = 2020
+
+# --- Options       --- #
+# Missing Value Handling: Rely on climatology or not?
+# "never" (missing values become zero),
+# "always" (Always reduce discharge to a monthly climatology),
+# "if_any_missing" (monthly climatology 'if_any_missing')
+climatology_handling = "never"
+
+# --- Saving        --- #
+OUTPUT_NAME = None  # if NONE, uses grd name
+
+# Initialization  ![
+# system
+import os
+import sys
+import glob
+# data
+import xarray as xr
+import numpy as np
+# plotting
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
+# ROMS-Tools ([C]Worthy)
+ROMSTOOLS_PATH=f"{os.environ['ROMSTOOLS_ROOT']}"
+import roms_tools as rt
+from roms_tools import RiverForcing, Grid
+# misc.
+from datetime import datetime
+
+# Paths:
+GRID_PATH = GRID_DIR+GRID_NAME
+GLOFAS_PATH = GLOFAS_DIR+GLOFAS_PROC
+
+# Saving Checks:
+if OUTPUT_NAME is None:
+  OUTPUT_NAME=f"{GRID_NAME.split('.')[0]}_river_frc"
+elif (OUTPUT_NAME!=None) and ('.nc' not in OUTPUT_NAME):
+  OUTPUT_NAME=OUTPUT_NAME+'.nc'
+
+#                 !]
+
+# ===== Run Source Code ===== #
+exec(open(ROMSTOOLS_PATH + '/code_lab/src/set_river_frc_src.py').read())
